@@ -23,11 +23,11 @@ wss.on('connection', (ws, req) => {
     //listen on messages
     ws.on('message', (msg) => {
         var msg = JSON.parse(msg);
-        console.log(msg);
+
         //handle actions
 
         if(msg.action == "joinQueue"){
-
+ 
             queue.push(req.headers['sec-websocket-key']);
             ws.send('{"action":"successfulJoinedQueue"}')
             console.log("[GameHandler] User joined queue".cyan);
@@ -35,8 +35,8 @@ wss.on('connection', (ws, req) => {
 
         }else if(msg.action == "choice"){
 
-            if(msg.data.gameid && msg.data.field){
-                choiceField(msg.data.gameid, req.headers['sec-websocket-key'], msg.data.field);
+            if(msg.data.gameId && msg.data.field){
+                choiceField(msg.data.gameId, req.headers['sec-websocket-key'], msg.data.field);
             }
 
         }
@@ -56,13 +56,13 @@ wss.on('connection', (ws, req) => {
 
             if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
                 console.log(thisgame.users["1"] + "/" + req.headers['sec-websocket-key'])
-                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd", data: {gameid: thisgame.gameid}}));
+                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd", data: {gameId: thisgame.gameId}}));
             }
             if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
-                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd", data: {gameid: thisgame.gameid}}));
+                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd", data: {gameId: thisgame.gameId}}));
             }
 
-            delete games[thisgame.gameid];
+            delete games[thisgame.gameId];
             delete thisgame;
 
         }
@@ -87,7 +87,7 @@ function matchmaking(){
         queue.shift();
 
         //generate uniqe game id
-        var gameid = uniqid();
+        var gameId = uniqid();
 
         //create game with game data
         var game = {
@@ -100,37 +100,36 @@ function matchmaking(){
         game.users["2"] = player2;
         game.currentPlayer = "1";
 
-        games[gameid] = game;
+        games[gameId] = game;
 
         //send new game actions to players
-        users[player1].send(JSON.stringify({newGame: gameid, data: {isCurrentPlayer: true}}));
-        users[player2].send(JSON.stringify({newGame: gameid, data: {isCurrentPlayer: false}}));
+        users[player1].send(JSON.stringify({action: "newGame", data: {gameId: gameId, isCurrentPlayer: true, you: 1}}));
+        users[player2].send(JSON.stringify({action: "newGame", data: {gameId: gameId, isCurrentPlayer: false, you: 1}}));
 
-        users[player1].currentGame = gameid;
-        users[player2].currentGame = gameid;
+        users[player1].currentGame = gameId;
+        users[player2].currentGame = gameId;
 
-        console.log("[GameHandler] New game created:".cyan);
-        console.log(game);
+        console.log(colors.cyan("[GameHandler] New game created:"+gameId));
 
     }
 
 }
 
 //handle game
-function choiceField(gameid, user, field){
+function choiceField(gameId, user, field){
 
     //check if game exists and if user is a part of this game
-    if(games[gameid] && (games[gameid].users["1"] == user || games[gameid].users["2"] == user)){
+    if(games[gameId] && (games[gameId].users["1"] == user || games[gameId].users["2"] == user)){
 
         //check which user is me
-        if(games[gameid].users["1"] == user){
+        if(games[gameId].users["1"] == user){
             var me = 1;
-        }else if(games[gameid].users["2"] == user){
+        }else if(games[gameId].users["2"] == user){
             var me = 2;
         }
 
         //check if user is the current user
-        if(games[gameid].currentPlayer == me){
+        if(games[gameId].currentPlayer == me){
 
             //check the range of the fields
             if(field > 0 && field < 10){
@@ -139,30 +138,32 @@ function choiceField(gameid, user, field){
                 field = field-1;
 
                 //check if field is empty
-                if(games[gameid].currentField[field] == 0){
+                if(games[gameId].currentField[field] == 0){
 
                     //set me to the field
-                    games[gameid].currentField[field] = me;
+                    games[gameId].currentField[field] = me;
 
                     //handle next player
                     if(me == 1){
-                        games[gameid].currentPlayer = 2;
+                        games[gameId].currentPlayer = 2;
                         var isCurrentPlayer1 = false;
                         var isCurrentPlayer2 = true;
                     }else{
-                        games[gameid].currentPlayer = 1;
+                        games[gameId].currentPlayer = 1;
                         var isCurrentPlayer1 = true;
                         var isCurrentPlayer2 = false;
                     }
 
+                    var winner = checkWinner(games[gameId].currentField);
+
                     //check if a user has won
-                    if(checkWinner(games[gameid].currentField) != 0){
-                        finishGame(gameid);
+                    if(winner != 0){
+                        finishGame(gameId, winner);
                     }else{
                         //send messages to users
 
-                        users[games[gameid].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: isCurrentPlayer1}}));
-                        users[games[gameid].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: isCurrentPlayer2}}));
+                        users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: isCurrentPlayer1}}));
+                        users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: isCurrentPlayer2}}));
 
                     }
                     
@@ -190,8 +191,8 @@ function checkWinner(field){
     field = field.join('');
 
     //set regex
-    var p1Regex = /111[0-2]{6}|[0-2]{3}111[0-2]{3}|[0-2]{6}111|1[0-2]{2}1[0-2]{2}1[0-2]{2}|[0-2]{1}1[0-2]{2}1[0-2]{2}1[0-2]{1}|[0-2]{2}1[0-2]{2}1[0-2]{2}1|1[0-2]{3}1[0-2]{3}1|[0-2]{2}1[0-2]{2}11[0-2]{2}/g
-    var p2Regex = /222[0-2]{6}|[0-2]{3}222[0-2]{3}|[0-2]{6}222|2[0-2]{2}2[0-2]{2}2[0-2]{2}|[0-2]{1}2[0-2]{2}2[0-2]{2}2[0-2]{1}|[0-2]{2}2[0-2]{2}2[0-2]{2}2|2[0-2]{3}2[0-2]{3}2|[0-2]{2}2[0-2]{2}2[0-2]{2}/g
+    var p1Regex = /111[0-2]{6}|[0-2]{3}111[0-2]{3}|[0-2]{6}111|1[0-2]{2}1[0-2]{2}1[0-2]{2}|[0-2]{1}1[0-2]{2}1[0-2]{2}1[0-2]{1}|[0-2]{2}1[0-2]{2}1[0-2]{2}1|1[0-2]{3}1[0-2]{3}1|[0-2]{2}1[0-2]{1}1[0-2]{1}1[0-2]{2}/g
+    var p2Regex = /222[0-2]{6}|[0-2]{3}222[0-2]{3}|[0-2]{6}222|2[0-2]{2}2[0-2]{2}2[0-2]{2}|[0-2]{1}2[0-2]{2}2[0-2]{2}2[0-2]{1}|[0-2]{2}2[0-2]{2}2[0-2]{2}2|2[0-2]{3}2[0-2]{3}2|[0-2]{2}2[0-2]{1}2[0-2]{1}2[0-2]{2}/g
     //set winner
     var winner = 0;
 
@@ -211,38 +212,36 @@ function checkWinner(field){
 
 }
 
-function finishGame(gameid){
-
-    var winner = checkWinner(games[gameid].currentField);
+function finishGame(gameId, winner){
 
     if(winner != 0){
 
-        users[games[gameid].users["1"]].currentGame = false;
-        users[games[gameid].users["1"]].currentGame = false;
+        users[games[gameId].users["1"]].currentGame = false;
+        users[games[gameId].users["1"]].currentGame = false;
 
         if(winner == 1){
 
             //send messages to users
-            users[games[gameid].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: false, winner: 2}}));
-            users[games[gameid].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: false, winner: 1}}));
+            users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
+            users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
 
 
         }else if(winner == 2){
 
             //send messages to users
-            users[games[gameid].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: false, winner: 1}}));
-            users[games[gameid].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: false, winner: 2}}));
+            users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
+            users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
 
         }else{
 
             //send messages to users
-            users[games[gameid].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: false, winner: 3}}));
-            users[games[gameid].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameid].currentField, isCurrentPlayer: false, winner: 3}}));
+            users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 3}}));
+            users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 3}}));
 
 
         }
 
-        delete games[games[gameid]];
+        delete games[gameId];
 
     }else{
         console.error("ERROR: Winner=true but finish game says no");

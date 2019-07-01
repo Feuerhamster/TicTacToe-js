@@ -1,0 +1,152 @@
+/* Basic HTML Styling */
+html, body{
+    margin: 0px;
+    height: 100%;
+    width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6{
+    font-family: 'Karla', sans-serif;
+    color: rgb(50,50,50);
+}
+
+footer{
+    position: absolute;
+    bottom: 0;
+    padding: 10px;
+    font-family: 'Karla', sans-serif;
+    color: rgb(130,130,130);
+    width: calc(100% - 20px);
+}
+footer > center > p{
+    margin: 0px;
+    display: inline-block;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+button{
+    background: linear-gradient(135deg, #ee5253, #ff9f43);
+    font-family: 'Karla', sans-serif;
+    font-size: 18px;
+    padding: 5px 10px 5px 10px;
+    color: white;
+    border: 0px;
+    border-radius: 2px;
+}
+button:hover{
+    background: linear-gradient(135deg, #dd5050, #e99241);
+}
+
+.break {
+    flex-basis: 100%;
+    height: 0;
+}
+
+/* Mobile optimization */
+@media (max-width:901px){
+    #connecting-indicator > h1{
+        font-size: 7vw!important;
+    }
+    #queue-screen > h1{
+        font-size: 10vw!important;
+    }
+    #queue-screen > h2{
+        font-size: 5vw!important;
+    }
+    #game-field > h1 {
+        font-size: 10vw!important;
+    }
+    #game-field > div > .field{
+        padding: 10px!important;
+        margin: 10px!important;
+    }
+}
+
+/* Connecting screen */
+#connecting-indicator{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    background-color: white;
+}
+#connecting-indicator > h1{
+    margin-top: 0px;
+    margin-bottom: 50px;
+    font-size: 4vw;
+}
+
+/* Main Screen */
+#main-screen{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+#main-screen > h1{
+    font-size: 80px;
+    text-shadow: 2px 2px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+    margin-top: 0px;
+}
+#main-screen > h2{
+    font-size: 48px;
+    margin: 0px;
+    margin-bottom: 50px;
+    text-shadow: 1px 1px rgba(0,0,0,0.5);
+    color: #10ac84;
+}
+
+/* Connecting screen */
+#queue-screen{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    background-color: white;
+    display: none;
+}
+#queue-screen > h1{
+    margin-top: 0px;
+    margin-bottom: 50px;
+    font-size: 4vw;
+}
+#queue-screen > h2{
+    margin-bottom: 80px;
+}
+
+/* Game Field */
+#game-field{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    background-color: white;
+    display: none;
+}
+#game-field > div > .field{
+    background-color: #e6edf7;
+    padding: 20px;
+    margin: 30px;
+    border-radius: 2px;
+    display: inline-block;
+}
+#game-field > div > .field:hover{
+    background-color: #dae2ee;
+}
+#game-field > h1 {
+    font-size: 6vw;
+    margin: 0px;
+}

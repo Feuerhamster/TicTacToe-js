@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+    <header>
+        <title>TicTacToe Multiplayer</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="loader.css" />
+        <link href="https://fonts.googleapis.com/css?family=Karla&display=swap" rel="stylesheet"> 
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <meta name="viewport" content="width=400, initial-scale=0.7">
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <meta property="og:title" content="TicTacToe - Multiplayer" />
+        <meta property="og:description" content="Das simple TicTacToe Spiel im Online Multiplayer. Programmiert von Feuerhamster" />
+    </header>
+
+    <body>
+
+        <div id="connecting-indicator">
+            <h1>Verbinde zum Spielserver</h1>
+            <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <div id="queue-screen">
+            <h1>Warteschlange</h1>
+            <h2>Suche nach einem Spiel...</h2>
+            <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <div id="game-field">
+
+            <h1 id="game-headline">Test</h1>
+
+            <div>
+
+                <div id="game-field-1" class="field"></div> <div id="game-field-2" class="field"></div> <div id="game-field-3" class="field"></div>
+                <div class="break"></div>
+                <div id="game-field-4" class="field"></div> <div id="game-field-5" class="field"></div> <div id="game-field-6" class="field"></div>
+                <div class="break"></div>
+                <div id="game-field-7" class="field"></div> <div id="game-field-8" class="field"></div> <div id="game-field-9" class="field"></div>
+
+            </div>
+            
+        </div>
+
+        <div id="main-screen">
+            <h1><span style="color: #ee5253">Tic</span><span style="color: #ff9f43">Tac</span><span style="color: #ee5253">Toe</span></h1>
+            <h2>Multiplayer</h2>
+            <button style="font-size: 32px;" onclick="enterQueue();">Spielen</button>
+        </div>
+
+    </body>
+
+    <footer>
+        <center style="width: 100%;"> <p>Server and Website by Feuerhamster</p> <p>Icons by Icons8.com</p> </center>
+    </footer>
+
+</html>
+<script src="index.js"></script>
