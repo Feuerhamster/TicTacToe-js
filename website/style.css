@@ -28,14 +28,20 @@ footer > center > p{
 button{
     background: linear-gradient(135deg, #ee5253, #ff9f43);
     font-family: 'Karla', sans-serif;
-    font-size: 18px;
-    padding: 5px 10px 5px 10px;
+    font-size: 24px;
+    padding: 8px 16px 8px 16px;
     color: white;
     border: 0px;
     border-radius: 2px;
+    outline: 0;
 }
 button:hover{
     background: linear-gradient(135deg, #dd5050, #e99241);
+}
+
+button:active{
+    transition: transform .1s;
+    transform: scale(0.9);
 }
 
 .break {
@@ -46,6 +52,9 @@ button:hover{
 /* Mobile optimization */
 @media (max-width:901px){
     #connecting-indicator > h1{
+        font-size: 7vw!important;
+    }
+    #connecting-error > h1{
         font-size: 7vw!important;
     }
     #queue-screen > h1{
@@ -60,6 +69,9 @@ button:hover{
     #game-field > div > .field{
         padding: 10px!important;
         margin: 10px!important;
+    }
+    #forceEnd-screen > h1{
+        font-size: 6vw!important;
     }
 }
 
@@ -78,6 +90,25 @@ button:hover{
     margin-top: 0px;
     margin-bottom: 50px;
     font-size: 4vw;
+}
+
+/* Connecting error */
+#connecting-error{
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    background-color: white;
+    z-index: 1001;
+}
+#connecting-error > h1{
+    margin-top: 0px;
+    margin-bottom: 50px;
+    font-size: 4vw;
+    color: #ee5253;
 }
 
 /* Main Screen */
@@ -102,6 +133,12 @@ button:hover{
     text-shadow: 1px 1px rgba(0,0,0,0.5);
     color: #10ac84;
 }
+#main-screen > h3{
+    font-weight: normal;
+    margin-top: 0px;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
 
 /* Connecting screen */
 #queue-screen{
@@ -117,11 +154,20 @@ button:hover{
 }
 #queue-screen > h1{
     margin-top: 0px;
-    margin-bottom: 50px;
-    font-size: 4vw;
+    margin-bottom: 30px;
+    font-size: 5vw;
+    text-shadow: 1px 1px rgba(0,0,0,0.5);
+    color: #10ac84;
 }
 #queue-screen > h2{
-    margin-bottom: 80px;
+    margin-bottom: 50px;
+    font-size: 3vw;
+}
+#queue-screen > h3{
+    font-weight: normal;
+    margin-top: 0px;
+    margin-bottom: 50px;
+    font-size: 24px;
 }
 
 /* Game Field */
@@ -147,6 +193,25 @@ button:hover{
     background-color: #dae2ee;
 }
 #game-field > h1 {
-    font-size: 6vw;
+    font-size: 5vw;
     margin: 0px;
+    margin-bottom: 20px;
+}
+
+/* forceEnd screen */
+#forceEnd-screen{
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    background-color: white;
+}
+#forceEnd-screen > h1{
+    margin-top: 0px;
+    margin-bottom: 50px;
+    font-size: 4vw;
+    color: #ee5253;
 }

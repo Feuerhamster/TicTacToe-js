@@ -11,20 +11,37 @@
         <meta name="viewport" content="width=400, initial-scale=0.7">
         <link rel="icon" href="favicon.ico" type="image/x-icon">
         <meta property="og:title" content="TicTacToe - Multiplayer" />
+        <meta property="og:image" content="tictactoe-image.png" />
         <meta property="og:description" content="Das simple TicTacToe Spiel im Online Multiplayer. Programmiert von Feuerhamster" />
+        <meta name="theme-color" content="#ee5253" />
+        <link rel="manifest" href="manifest.json">
     </header>
 
     <body>
 
         <div id="connecting-indicator">
-            <h1>Verbinde zum Spielserver</h1>
+            <h1>Verbinde zum Spielserver...</h1>
             <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <div id="connecting-error">
+            <h1>Verbindung fehlgeschlagen</h1>
+            <button onclick="window.location.href = document.URL">Erneut versuchen</button>
         </div>
 
         <div id="queue-screen">
             <h1>Warteschlange</h1>
-            <h2>Suche nach einem Spiel...</h2>
+            <h2>Suche Spiel...</h2>
+
+            <h3>Spieler Online: <b id="queue-online-counter">...</b> <br/> Spieler in Warteschlange: <b id="queue-user-counter">...</b></h3>
+
             <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+
+            <button onclick="leaveQueue();" style="margin-top: 50px;">Warteschlange verlassen</button>
+        </div>
+
+        <div id="forceEnd-screen">
+            <h1>Dein Gegner hat das Spiel verlassen</h1>
         </div>
 
         <div id="game-field">
@@ -40,12 +57,19 @@
                 <div id="game-field-7" class="field"></div> <div id="game-field-8" class="field"></div> <div id="game-field-9" class="field"></div>
 
             </div>
+
+            <button id="backButton" onclick="back();" style="margin-bottom: 20px; margin-top: 20px; display: none">Beenden & Zurück</button>
+            <button id="newGameButton" onclick="enterQueue();" style="display: none">Neues Spiel</button>
+            
             
         </div>
 
         <div id="main-screen">
             <h1><span style="color: #ee5253">Tic</span><span style="color: #ff9f43">Tac</span><span style="color: #ee5253">Toe</span></h1>
             <h2>Multiplayer</h2>
+
+            <h3>Spieler Online: <b id="main-online-counter">...</b></h3>
+
             <button style="font-size: 32px;" onclick="enterQueue();">Spielen</button>
         </div>
 

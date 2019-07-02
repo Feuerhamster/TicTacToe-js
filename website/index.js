@@ -1,3 +1,4 @@
+//get icons
 const gameFieldIcons = {
     empty: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="65" height="65" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g id="Layer_1" fill="#ccd6e6"><g id="surface1"><path d="M86,164.11667l-78.11667,-78.11667l78.11667,-78.11667l78.11667,78.11667zM27.95,86l58.05,58.05l58.05,-58.05l-58.05,-58.05z"></path></g></g></g></svg>',
     x: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="65" height="65" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#ee5253"><g id="surface1"><path d="M129.06999,30.26237l12.68164,12.66764l-98.82161,98.80762l-12.66764,-12.66765z"></path><path d="M141.73763,129.08399l-12.66765,12.66764l-98.80761,-98.83561l12.66764,-12.66765z"></path></g></g></g></svg>',
@@ -5,10 +6,12 @@ const gameFieldIcons = {
 
 }
 
+//set vars
 var currentGame = false;
 var mePlayer = false;
 var ws = false;
 
+//prepare game field
 $("#game-field-1").html(gameFieldIcons.empty);
 $("#game-field-2").html(gameFieldIcons.empty);
 $("#game-field-3").html(gameFieldIcons.empty);
@@ -19,6 +22,7 @@ $("#game-field-7").html(gameFieldIcons.empty);
 $("#game-field-8").html(gameFieldIcons.empty);
 $("#game-field-9").html(gameFieldIcons.empty);
 
+//set click event handler
 $("#game-field-1").on("click", function(){
     chooseFiled(1);
 });
@@ -47,31 +51,54 @@ $("#game-field-9").on("click", function(){
     chooseFiled(9);
 });
 
+//create connect function
 function gameServerConnection(){
 
-    ws = new WebSocket("ws://localhost:2220");
+    //connect to gameserver
+    ws = new WebSocket("ws://192.168.188.75:2220");
 
+    //on open function
     ws.onopen = ()=>{
         console.log("[ws] Connected");
-        setTimeout(()=>{
-            $("#connecting-indicator").fadeOut(500);
-        },500);
-        
     }
+
+    //on message function
     ws.onmessage = function (event) {
         var data = JSON.parse(event.data);
 
-        console.log(data);
+        //check the action
+        if(data.action == "successfulJoinedServer"){
 
-        if(data.action == "successfulJoinedQueue"){
+            setTimeout(()=>{
+                $("#connecting-indicator").fadeOut(500);
+            },500);
+
+            $("#main-online-counter").html(data.online);
+
+        }else if(data.action == "successfulJoinedQueue"){
 
             $("#queue-screen").css("display", "flex").hide().fadeIn(500);
             $("#main-screen").css("display", "none");
+            $("#game-field").css("display", "none");
+
+            $("#queue-online-counter").html(data.online);
+            $("#queue-user-counter").html(data.inQueue);
 
         }else if(data.action == "newGame"){
 
-            currentGame = data.data.gameId;
             mePlayer = data.data.you;
+
+            currentGame = true;
+
+            $("#game-field-1").html(gameFieldIcons.empty);
+            $("#game-field-2").html(gameFieldIcons.empty);
+            $("#game-field-3").html(gameFieldIcons.empty);
+            $("#game-field-4").html(gameFieldIcons.empty);
+            $("#game-field-5").html(gameFieldIcons.empty);
+            $("#game-field-6").html(gameFieldIcons.empty);
+            $("#game-field-7").html(gameFieldIcons.empty);
+            $("#game-field-8").html(gameFieldIcons.empty);
+            $("#game-field-9").html(gameFieldIcons.empty);
 
             $("#queue-screen").fadeOut(500);
             $("#game-field").css("display", "flex").hide().fadeIn(500);
@@ -84,7 +111,13 @@ function gameServerConnection(){
         }else if(data.action == "forceEnd"){
 
             $("#game-field").fadeOut(500);
-            $("#main-screen").css("display", "flex").hide().fadeIn(500);
+
+            $("#forceEnd-screen").css("display", "flex").hide().fadeIn(500);
+            setTimeout(()=>{
+                $("#forceEnd-screen").fadeOut(500);
+                $("#main-screen").css("display", "flex").hide().fadeIn(500);
+            },2000);
+            
 
         }else if(data.action == "updateGame"){
 
@@ -110,7 +143,7 @@ function gameServerConnection(){
 
             }else{
 
-                //currentGame = false;
+                currentGame = false;
 
                 if(data.data.winner == mePlayer){
                     $("#game-headline").html("<span style='color: #10ac84'>Du hast Gewonnen</span>");
@@ -120,6 +153,11 @@ function gameServerConnection(){
                     $("#game-headline").html("<span style='color: #ee5253'>Du hast Verloren</span>");
                 }
 
+                $("#backButton").fadeIn(1000);
+                setTimeout(()=>{
+                    $("#newGameButton").fadeIn(1000);
+                },500);
+
             }
             
 
@@ -127,10 +165,10 @@ function gameServerConnection(){
 
     }
 
+    //on close function
     ws.onclose = function (event) {
-        $("#queue-screen").css("display", "flex").hide().fadeIn(500);
-        console.warn("[ws] Connection failed");
-        gameServerConnection();
+        $("#connecting-error").css("display", "flex").hide().fadeIn(500);
+        console.error("[ws] Connection failed");
     }
 
 }
@@ -144,5 +182,21 @@ function chooseFiled(field){
         ws.send(JSON.stringify({ action: "choice", data: { gameId: currentGame , field: field } }));
     }
 }
+function back(){
+    if(currentGame){
+        console.log("leaving game");
+        ws.send(JSON.stringify({ action: "leaveGame" }));
+    }
+    $("#game-field").hide();
+    $("#main-screen").css("display", "flex").hide().fadeIn(500);
+}
 
+function leaveQueue(){
+    console.log("leaving queue");
+    ws.send(JSON.stringify({ action: "leaveQueue" }));
+    $("#queue-screen").hide();
+    $("#main-screen").css("display", "flex").hide().fadeIn(500);
+}
+
+//start connect function
 gameServerConnection();

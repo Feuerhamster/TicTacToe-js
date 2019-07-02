@@ -19,6 +19,10 @@ wss.on('connection', (ws, req) => {
     //log new users
     console.log(colors.green("[WebSocket] New user: " + req.headers['sec-websocket-key']));
     users[req.headers['sec-websocket-key']] = ws;
+    users[req.headers['sec-websocket-key']].currentGame = false;
+
+    //send success message to the user
+    ws.send(JSON.stringify({ action: "successfulJoinedServer", online: Object.keys(users).length}));
 
     //listen on messages
     ws.on('message', (msg) => {
@@ -28,15 +32,71 @@ wss.on('connection', (ws, req) => {
 
         if(msg.action == "joinQueue"){
  
-            queue.push(req.headers['sec-websocket-key']);
-            ws.send('{"action":"successfulJoinedQueue"}')
-            console.log("[GameHandler] User joined queue".cyan);
-            matchmaking();
+            //check if user is already in a game
+            if(!users[req.headers['sec-websocket-key']].currentGame){
+
+                //push the user in the queue and send him a success message
+                queue.push(req.headers['sec-websocket-key']);
+                ws.send(JSON.stringify({ action: "successfulJoinedQueue", inQueue: queue.length, online: Object.keys(users).length }));
+
+                console.log("[GameHandler] User joined queue".cyan);
+
+                //start matchmaking
+                matchmaking();
+
+            }else{
+                //send error message
+                ws.send(JSON.stringify({ error: "alreadyInGame" }));
+            }
+            
 
         }else if(msg.action == "choice"){
 
-            if(msg.data.gameId && msg.data.field){
-                choiceField(msg.data.gameId, req.headers['sec-websocket-key'], msg.data.field);
+            //check if the field is set and a game exists
+            if(msg.data.field && games[users[req.headers['sec-websocket-key']].currentGame]){
+                choiceField(users[req.headers['sec-websocket-key']].currentGame, req.headers['sec-websocket-key'], msg.data.field);
+            }else{
+                //send error message
+                ws.send(JSON.stringify({ error: "fieldNotSetOrNoGame" }));
+            }
+
+        }else if(msg.action == "leaveGame"){
+            
+            //get the current game
+            var thisgame = games[users[req.headers['sec-websocket-key']].currentGame];
+
+            //send force end message to the other user
+            if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
+                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd"}));
+            }
+            if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
+                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd"}));
+            }
+
+            //remove the current game
+            users[thisgame.users["1"]].currentGame = false;
+            users[thisgame.users["2"]].currentGame = false;
+
+            delete games[thisgame.gameId];
+            delete thisgame;
+
+            //send success message
+            ws.send(JSON.stringify({ action: "successfulLeftGame" }));
+
+            console.log("[GameHandler] User left the game".cyan);
+
+        }else if(msg.action == "leaveQueue"){
+
+            //check if user is in queue
+            if(queue.indexOf(req.headers['sec-websocket-key']) != -1){
+
+                //remove user from queue
+                queue.splice(queue.indexOf(req.headers['sec-websocket-key']),1);
+                console.log("[GameHandler] User left queue".cyan);
+
+            }else{
+                //send error message
+                ws.send(JSON.stringify({ error: "notInQueue" }));
             }
 
         }
@@ -46,27 +106,36 @@ wss.on('connection', (ws, req) => {
     ws.on('close',function(reason, description){
 
         console.log("[WebSocket] User closed connection".red);
-        if(queue[req.headers['sec-websocket-key']]){
-            delete queue[req.headers['sec-websocket-key']];
+
+        //if user is in queue, remove the user from the queue
+        if(queue.indexOf(req.headers['sec-websocket-key']) != -1){
+
+            queue.splice(queue.indexOf(req.headers['sec-websocket-key']),1);
+            console.log("[GameHandler] User left queue".cyan);
+
         }
 
+        //delete the game if a game is running
         if(users[req.headers['sec-websocket-key']].currentGame && games[users[req.headers['sec-websocket-key']].currentGame]){
 
             var thisgame = games[users[req.headers['sec-websocket-key']].currentGame];
 
             if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
-                console.log(thisgame.users["1"] + "/" + req.headers['sec-websocket-key'])
-                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd", data: {gameId: thisgame.gameId}}));
+                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd"}));
             }
             if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
-                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd", data: {gameId: thisgame.gameId}}));
+                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd"}));
             }
+
+            users[thisgame.users["1"]].currentGame = false;
+            users[thisgame.users["2"]].currentGame = false;
 
             delete games[thisgame.gameId];
             delete thisgame;
 
         }
 
+        //delete the user
         delete users[req.headers['sec-websocket-key']];
 
     });
@@ -103,8 +172,8 @@ function matchmaking(){
         games[gameId] = game;
 
         //send new game actions to players
-        users[player1].send(JSON.stringify({action: "newGame", data: {gameId: gameId, isCurrentPlayer: true, you: 1}}));
-        users[player2].send(JSON.stringify({action: "newGame", data: {gameId: gameId, isCurrentPlayer: false, you: 1}}));
+        users[player1].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: true, you: 1}}));
+        users[player2].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: false, you: 1}}));
 
         users[player1].currentGame = gameId;
         users[player2].currentGame = gameId;
@@ -217,7 +286,7 @@ function finishGame(gameId, winner){
     if(winner != 0){
 
         users[games[gameId].users["1"]].currentGame = false;
-        users[games[gameId].users["1"]].currentGame = false;
+        users[games[gameId].users["2"]].currentGame = false;
 
         if(winner == 1){
 
