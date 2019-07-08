@@ -10,6 +10,7 @@ const gameFieldIcons = {
 var currentGame = false;
 var mePlayer = false;
 var ws = false;
+var inQueue = false;
 
 //prepare game field
 $("#game-field-1").html(gameFieldIcons.empty);
@@ -55,7 +56,7 @@ $("#game-field-9").on("click", function(){
 function gameServerConnection(){
 
     //connect to gameserver
-    ws = new WebSocket("ws://192.168.188.75:2220");
+    ws = new WebSocket("ws://feuerhamster.ddns.net:2220");
 
     //on open function
     ws.onopen = ()=>{
@@ -77,6 +78,8 @@ function gameServerConnection(){
 
         }else if(data.action == "successfulJoinedQueue"){
 
+            inQueue = true;
+
             $("#queue-screen").css("display", "flex").hide().fadeIn(500);
             $("#main-screen").css("display", "none");
             $("#game-field").css("display", "none");
@@ -89,6 +92,7 @@ function gameServerConnection(){
             mePlayer = data.data.you;
 
             currentGame = true;
+            inQueue = false;
 
             $("#game-field-1").html(gameFieldIcons.empty);
             $("#game-field-2").html(gameFieldIcons.empty);
@@ -99,6 +103,9 @@ function gameServerConnection(){
             $("#game-field-7").html(gameFieldIcons.empty);
             $("#game-field-8").html(gameFieldIcons.empty);
             $("#game-field-9").html(gameFieldIcons.empty);
+
+            $("#backButton").css("display", "none");
+            $("#newGameButton").css("display", "none");
 
             $("#queue-screen").fadeOut(500);
             $("#game-field").css("display", "flex").hide().fadeIn(500);
@@ -173,6 +180,36 @@ function gameServerConnection(){
 
 }
 
+document.addEventListener("keydown", function(event){
+
+    var keys = {
+        103: 1,
+        104: 2,
+        105: 3,
+        100: 4,
+        101: 5,
+        102: 6,
+        97: 7,
+        98: 8,
+        99: 9
+    }
+
+    if(keys[event.keyCode]){
+        chooseFiled(keys[event.keyCode]);
+    }else{
+        if(event.keyCode == 13){
+            enterQueue();
+        }else if(event.keyCode == 96){
+
+            if(inQueue){
+                leaveQueue();
+            }else{
+                back();
+            }
+        }
+    }
+
+});
 
 function enterQueue(){
     ws.send(JSON.stringify({ action: "joinQueue" }));
