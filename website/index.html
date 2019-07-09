@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 
-    <header>
+    <head>
         <title>TicTacToe Multiplayer</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" id="stylelink" href="style.css" />
         <link rel="stylesheet" href="loader.css" />
         <link href="https://fonts.googleapis.com/css?family=Karla&display=swap" rel="stylesheet"> 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
@@ -15,7 +15,7 @@
         <meta property="og:description" content="Das simple TicTacToe Spiel im Online Multiplayer. Programmiert von Feuerhamster" />
         <meta name="theme-color" content="#ee5253" />
         <link rel="manifest" href="manifest.json">
-    </header>
+    </head>
 
     <body>
 
@@ -26,7 +26,8 @@
 
         <div id="connecting-error">
             <h1>Verbindung fehlgeschlagen</h1>
-            <button onclick="window.location.href = document.URL">Erneut versuchen</button>
+            <button onclick="window.location.href = document.URL" style="margin-bottom: 10px;">Erneut versuchen</button>
+            <button onclick="window.location.href = 'infos.html'">Infos und Hilfe</button>
         </div>
 
         <div id="queue-screen">
@@ -37,7 +38,7 @@
 
             <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
 
-            <button onclick="leaveQueue();" style="margin-top: 50px;">Warteschlange verlassen</button>
+            <button onclick="leaveQueue();" style="margin-top: 50px;" >Warteschlange verlassen</button>
         </div>
 
         <div id="forceEnd-screen">
@@ -46,7 +47,9 @@
 
         <div id="game-field">
 
-            <h1 id="game-headline">Test</h1>
+            <h1 id="game-headline">...</h1>
+            <h2>Gegner: <b id="enemy-name" style="margin-left: 5px;margin-top: 0px;"></b></h2>
+            <h2 style="margin-top: 0px;"><span>Dein Symbol:</span> <span id="you-symbol" style="margin-left: 10px;"></span></h2>
 
             <div>
 
@@ -68,15 +71,26 @@
             <h1><span style="color: #ee5253">Tic</span><span style="color: #ff9f43">Tac</span><span style="color: #ee5253">Toe</span></h1>
             <h2>Multiplayer</h2>
 
-            <h3>Spieler Online: <b id="main-online-counter">...</b></h3>
+            <div id="loginBox">
 
-            <button style="font-size: 32px;" onclick="enterQueue();">Spielen</button>
+                <form id="loginform">
+                    <input type="text" placeholder="Nickname" name="username" /><br>
+                    <button style="margin-top: 20px;">Weiter</button>
+                </form>
+
+            </div>
+            <div id="mainMenuBox" style="display: none">
+                <h3>Spieler Online: <b id="main-online-counter">...</b></h3>
+                <h3>Nickname: <b id="user-nickname">...</b></h3>
+
+                <button style="font-size: 32px;" onclick="enterQueue();">Spielen</button>
+            </div>
         </div>
 
     </body>
 
     <footer>
-        <center style="width: 100%;"> <p>Server and Website by Feuerhamster</p> <p>Icons by Icons8.com</p> <p>Du kannst auch mit dem Numpad spielen! <a href="infos.html">Infos hier</a></p> </center>
+        <center style="width: 100%;"> <p>Server and Website by Feuerhamster</p> <p id="numPadControl">Unterstützt NumPad Steuerung!</p> <p><a href="infos.html">Infos und Hilfe</a></p> <p><a id="styleSwitcher" onclick="switchDesign();" style="cursor:pointer;color: #16a085!important">[Dark Design]</a></p> </center>
     </footer>
 
 </html>

@@ -2,8 +2,10 @@
 const gameFieldIcons = {
     empty: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="65" height="65" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g id="Layer_1" fill="#ccd6e6"><g id="surface1"><path d="M86,164.11667l-78.11667,-78.11667l78.11667,-78.11667l78.11667,78.11667zM27.95,86l58.05,58.05l58.05,-58.05l-58.05,-58.05z"></path></g></g></g></svg>',
     x: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="65" height="65" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#ee5253"><g id="surface1"><path d="M129.06999,30.26237l12.68164,12.66764l-98.82161,98.80762l-12.66764,-12.66765z"></path><path d="M141.73763,129.08399l-12.66765,12.66764l-98.80761,-98.83561l12.66764,-12.66765z"></path></g></g></g></svg>',
-    o: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="65" height="65" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g id="Layer_1" fill="#ff9f43"><g id="surface1"><path d="M86,157.66667c-39.41667,0 -71.66667,-32.25 -71.66667,-71.66667c0,-39.41667 32.25,-71.66667 71.66667,-71.66667c39.41667,0 71.66667,32.25 71.66667,71.66667c0,39.41667 -32.25,71.66667 -71.66667,71.66667zM86,28.66667c-31.53333,0 -57.33333,25.8 -57.33333,57.33333c0,31.53333 25.8,57.33333 57.33333,57.33333c31.53333,0 57.33333,-25.8 57.33333,-57.33333c0,-31.53333 -25.8,-57.33333 -57.33333,-57.33333z"></path></g></g></g></svg>'
+    o: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="65" height="65" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g id="Layer_1" fill="#ff9f43"><g id="surface1"><path d="M86,157.66667c-39.41667,0 -71.66667,-32.25 -71.66667,-71.66667c0,-39.41667 32.25,-71.66667 71.66667,-71.66667c39.41667,0 71.66667,32.25 71.66667,71.66667c0,39.41667 -32.25,71.66667 -71.66667,71.66667zM86,28.66667c-31.53333,0 -57.33333,25.8 -57.33333,57.33333c0,31.53333 25.8,57.33333 57.33333,57.33333c31.53333,0 57.33333,-25.8 57.33333,-57.33333c0,-31.53333 -25.8,-57.33333 -57.33333,-57.33333z"></path></g></g></g></svg>',
 
+    miniX: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="55" height="55" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#ee5253"><g id="surface1"><path d="M129.06999,30.26237l12.68164,12.66764l-98.82161,98.80762l-12.66764,-12.66765z"></path><path d="M141.73763,129.08399l-12.66765,12.66764l-98.80761,-98.83561l12.66764,-12.66765z"></path></g></g></g></svg>',
+    miniO: '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="55" height="55" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g id="Layer_1" fill="#ff9f43"><g id="surface1"><path d="M86,157.66667c-39.41667,0 -71.66667,-32.25 -71.66667,-71.66667c0,-39.41667 32.25,-71.66667 71.66667,-71.66667c39.41667,0 71.66667,32.25 71.66667,71.66667c0,39.41667 -32.25,71.66667 -71.66667,71.66667zM86,28.66667c-31.53333,0 -57.33333,25.8 -57.33333,57.33333c0,31.53333 25.8,57.33333 57.33333,57.33333c31.53333,0 57.33333,-25.8 57.33333,-57.33333c0,-31.53333 -25.8,-57.33333 -57.33333,-57.33333z"></path></g></g></g></svg>'
 }
 
 //set vars
@@ -53,10 +55,10 @@ $("#game-field-9").on("click", function(){
 });
 
 //create connect function
-function gameServerConnection(){
+function gameServerConnection(username){
 
     //connect to gameserver
-    ws = new WebSocket("ws://feuerhamster.ddns.net:2220");
+    ws = new WebSocket("ws://localhost:2220",[username]);
 
     //on open function
     ws.onopen = ()=>{
@@ -71,6 +73,8 @@ function gameServerConnection(){
         if(data.action == "successfulJoinedServer"){
 
             setTimeout(()=>{
+                $("#loginform").css("display", "none");
+                $("#mainMenuBox").css("display", "flex");
                 $("#connecting-indicator").fadeOut(500);
             },500);
 
@@ -109,6 +113,15 @@ function gameServerConnection(){
 
             $("#queue-screen").fadeOut(500);
             $("#game-field").css("display", "flex").hide().fadeIn(500);
+
+            $("#enemy-name").html(data.data.enemy);
+            
+            if(mePlayer == 1){
+                $("#you-symbol").html(gameFieldIcons.miniX);
+            }else{
+                $("#you-symbol").html(gameFieldIcons.miniO);
+            }
+
             if(data.data.isCurrentPlayer){
                 $("#game-headline").html("Du bist dran");
             }else{
@@ -212,7 +225,9 @@ document.addEventListener("keydown", function(event){
 });
 
 function enterQueue(){
-    ws.send(JSON.stringify({ action: "joinQueue" }));
+    if(ws){
+        ws.send(JSON.stringify({ action: "joinQueue" }));
+    }  
 }
 function chooseFiled(field){
     if(currentGame){
@@ -230,10 +245,79 @@ function back(){
 
 function leaveQueue(){
     console.log("leaving queue");
-    ws.send(JSON.stringify({ action: "leaveQueue" }));
+    if(ws){
+        ws.send(JSON.stringify({ action: "leaveQueue" }));
+    }
     $("#queue-screen").hide();
     $("#main-screen").css("display", "flex").hide().fadeIn(500);
 }
 
-//start connect function
-gameServerConnection();
+var design = "light";
+function switchDesign(){
+
+    if(design == "light"){
+
+        if(typeof(Storage) != "undefined"){
+            sessionStorage.design = "dark";
+        }
+
+        design = "dark";
+        document.getElementById("stylelink").href="style-dark.css";
+        $('#styleSwitcher').html("[Light Design]");
+
+    }else{
+
+        if(typeof(Storage) != "undefined"){
+            sessionStorage.design = "light";
+        }
+
+        design = "light";
+        document.getElementById("stylelink").href="style.css";
+        $('#styleSwitcher').html("[Dark Design]");
+
+    }
+
+}
+
+//handle user login
+$("#loginform").submit(function(event){
+
+    $("#connecting-indicator").css("display", "flex");
+
+    event.preventDefault();
+    var username = $(this)[0][0].value;
+
+    if(typeof(Storage) != "undefined"){
+        sessionStorage.username = username;
+    }
+
+    $("#user-nickname").html(username);
+    $("#loginBox").css("display", "none");
+
+    //start connect function
+    gameServerConnection(username);
+
+});
+
+if(typeof(Storage) != "undefined" && sessionStorage.username){
+
+    $("#connecting-indicator").css("display", "flex");
+    $("#user-nickname").html(sessionStorage.username);
+    gameServerConnection(sessionStorage.username);
+
+}
+
+if(typeof(Storage) != "undefined" && sessionStorage.design){
+    if(design == "light"){
+        sessionStorage.design = "dark";
+        design = "dark";
+        document.getElementById("stylelink").href="style-dark.css";
+        $('#styleSwitcher').html("[Light Design]");
+
+    }else{
+        design = "light";
+        document.getElementById("stylelink").href="style.css";
+        $('#styleSwitcher').html("[Dark Design]");
+
+    }
+}

@@ -3,11 +3,12 @@ html, body{
     margin: 0px;
     height: 100%;
     width: 100%;
+    background-color: #2c3e50;
 }
 
 h1, h2, h3, h4, h5, h6{
     font-family: 'Karla', sans-serif;
-    color: rgb(50,50,50);
+    color: white;
 }
 
 footer{
@@ -15,7 +16,7 @@ footer{
     bottom: 0;
     padding: 10px;
     font-family: 'Karla', sans-serif;
-    color: rgb(130,130,130);
+    color: white;
     width: calc(100% - 20px);
 }
 footer > center > p{
@@ -42,6 +43,31 @@ button:hover{
 button:active{
     transition: transform .1s;
     transform: scale(0.9);
+}
+
+
+input{
+    padding: 10px 20px 10px 20px;
+    border: 3px solid #ff9f43;
+    font-size: 16px;
+    border-radius: 2px;
+    font-family: 'Karla', sans-serif;
+    color: white;
+    background-color: #34495e;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+a{
+    font-family: 'Karla ', sans-serif;
+    color: #3498db;
+}
+a:visited{
+    color: #246caf;
 }
 
 .break {
@@ -73,18 +99,21 @@ button:active{
     #forceEnd-screen > h1{
         font-size: 6vw!important;
     }
+    #numPadControl{
+        display: none;
+    }
 }
 
 /* Connecting screen */
 #connecting-indicator{
     width: 100%;
     height: 100%;
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: white;
+    background-color: #2c3e50;
 }
 #connecting-indicator > h1{
     margin-top: 0px;
@@ -101,7 +130,7 @@ button:active{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: white;
+    background-color: #2c3e50;
     z-index: 1001;
 }
 #connecting-error > h1{
@@ -119,6 +148,7 @@ button:active{
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    background-color: #2c3e50;
 }
 #main-screen > h1{
     font-size: 80px;
@@ -133,11 +163,17 @@ button:active{
     text-shadow: 1px 1px rgba(0,0,0,0.5);
     color: #10ac84;
 }
-#main-screen > h3{
+#main-screen > div > h3{
     font-weight: normal;
     margin-top: 0px;
     margin-bottom: 20px;
     font-size: 24px;
+}
+
+#main-screen > #mainMenuBox{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Connecting screen */
@@ -149,7 +185,7 @@ button:active{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: white;
+    background-color: #2c3e50;
     display: none;
 }
 #queue-screen > h1{
@@ -179,21 +215,27 @@ button:active{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: white;
+    background-color: #2c3e50;
     display: none;
 }
+#game-field > h2 {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+}
+
 #game-field > div > .field{
-    background-color: #e6edf7;
+    background-color: #34495e;
     padding: 20px;
     margin: 30px;
     border-radius: 2px;
     display: inline-block;
 }
 #game-field > div > .field:hover{
-    background-color: #dae2ee;
+    background-color: #3b5066;
 }
 #game-field > h1 {
-    font-size: 5vw;
+    font-size: 4vw;
     margin: 0px;
     margin-bottom: 20px;
 }
@@ -207,7 +249,7 @@ button:active{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: white;
+    background-color: #2c3e50;
 }
 #forceEnd-screen > h1{
     margin-top: 0px;

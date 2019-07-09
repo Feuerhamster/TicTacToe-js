@@ -17,9 +17,10 @@ console.log("[WebSocket] Server successful started".green);
 wss.on('connection', (ws, req) => {
 
     //log new users
-    console.log(colors.green("[WebSocket] New user: " + req.headers['sec-websocket-key']));
+    console.log(colors.green("[WebSocket] New user: " + req.headers['sec-websocket-protocol']));
     users[req.headers['sec-websocket-key']] = ws;
     users[req.headers['sec-websocket-key']].currentGame = false;
+    users[req.headers['sec-websocket-key']].username = req.headers['sec-websocket-protocol'];
 
     //send success message to the user
     ws.send(JSON.stringify({ action: "successfulJoinedServer", online: Object.keys(users).length}));
@@ -172,13 +173,13 @@ function matchmaking(){
         games[gameId] = game;
 
         //send new game actions to players
-        users[player1].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: true, you: 1}}));
-        users[player2].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: false, you: 1}}));
+        users[player1].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: true, you: 1, enemy: users[player2].username}}));
+        users[player2].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: false, you: 2, enemy: users[player1].username}}));
 
         users[player1].currentGame = gameId;
         users[player2].currentGame = gameId;
 
-        console.log(colors.cyan("[GameHandler] New game created:"+gameId));
+        console.log(colors.cyan("[GameHandler] New game created: "+gameId));
 
     }
 
