@@ -16,130 +16,149 @@ console.log("[WebSocket] Server successful started".green);
 //listen on connections
 wss.on('connection', (ws, req) => {
 
-    //log new users
-    console.log(colors.green("[WebSocket] New user: " + req.headers['sec-websocket-protocol']));
-    users[req.headers['sec-websocket-key']] = ws;
-    users[req.headers['sec-websocket-key']].currentGame = false;
-    users[req.headers['sec-websocket-key']].username = req.headers['sec-websocket-protocol'];
+    if(req.headers['sec-websocket-protocol'] && req.headers['sec-websocket-protocol'].length > 1 && req.headers['sec-websocket-protocol'].length < 20){
 
-    //send success message to the user
-    ws.send(JSON.stringify({ action: "successfulJoinedServer", online: Object.keys(users).length}));
+        //log new users
+        console.log(colors.green("[WebSocket] New user: " + req.headers['sec-websocket-protocol']));
+        users[req.headers['sec-websocket-key']] = ws;
+        users[req.headers['sec-websocket-key']].currentGame = false;
+        users[req.headers['sec-websocket-key']].username = req.headers['sec-websocket-protocol'];
 
-    //listen on messages
-    ws.on('message', (msg) => {
-        var msg = JSON.parse(msg);
+        //send success message to the user
+        ws.send(JSON.stringify({ action: "successfulJoinedServer", online: Object.keys(users).length}));
 
-        //handle actions
+        //listen on messages
+        ws.on('message', (msg) => {
+            var msg = JSON.parse(msg);
 
-        if(msg.action == "joinQueue"){
- 
-            //check if user is already in a game
-            if(!users[req.headers['sec-websocket-key']].currentGame){
+            //handle actions
 
-                //push the user in the queue and send him a success message
-                queue.push(req.headers['sec-websocket-key']);
-                ws.send(JSON.stringify({ action: "successfulJoinedQueue", inQueue: queue.length, online: Object.keys(users).length }));
+            if(msg.action == "joinQueue"){
 
-                console.log("[GameHandler] User joined queue".cyan);
+                //check if user is already in a game
+                if(!users[req.headers['sec-websocket-key']].currentGame){
 
-                //start matchmaking
-                matchmaking();
+                    //push the user in the queue and send him a success message
+                    queue.push(req.headers['sec-websocket-key']);
+                    ws.send(JSON.stringify({ action: "successfulJoinedQueue", inQueue: queue.length, online: Object.keys(users).length }));
 
-            }else{
-                //send error message
-                ws.send(JSON.stringify({ error: "alreadyInGame" }));
+                    console.log(colors.cyan("[GameHandler] "+users[req.headers['sec-websocket-key']].username+" joined queue"));
+
+                    //start matchmaking
+                    matchmaking();
+
+                }else{
+                    //send error message
+                    ws.send(JSON.stringify({ error: "alreadyInGame" }));
+                }
+                
+
+            }else if(msg.action == "choice"){
+
+                //check if the field is set and a game exists
+                if(msg.data.field && games[users[req.headers['sec-websocket-key']].currentGame]){
+                    choiceField(users[req.headers['sec-websocket-key']].currentGame, req.headers['sec-websocket-key'], msg.data.field);
+                }else{
+                    //send error message
+                    ws.send(JSON.stringify({ error: "fieldNotSetOrNoGame" }));
+                }
+
+            }else if(msg.action == "leaveGame"){
+                
+                //get the current game
+                var thisgame = games[users[req.headers['sec-websocket-key']].currentGame];
+
+                //send force end message to the other user
+                if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
+                    users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd"}));
+                }
+                if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
+                    users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd"}));
+                }
+
+                //remove the current game
+                users[thisgame.users["1"]].currentGame = false;
+                users[thisgame.users["2"]].currentGame = false;
+
+                delete games[thisgame.gameId];
+                delete thisgame;
+
+                //send success message
+                ws.send(JSON.stringify({ action: "successfulLeftGame" }));
+
+                console.log(colors.cyan("[GameHandler] "+users[req.headers['sec-websocket-key']].username+" left the game"));
+
+            }else if(msg.action == "leaveQueue"){
+
+                //check if user is in queue
+                if(queue.indexOf(req.headers['sec-websocket-key']) != -1){
+
+                    //remove user from queue
+                    queue.splice(queue.indexOf(req.headers['sec-websocket-key']),1);
+                    console.log(colors.cyan("[GameHandler] "+users[req.headers['sec-websocket-key']].username+" left queue"));
+
+                }else{
+                    //send error message
+                    ws.send(JSON.stringify({ error: "notInQueue" }));
+                }
+
             }
-            
 
-        }else if(msg.action == "choice"){
+        });
 
-            //check if the field is set and a game exists
-            if(msg.data.field && games[users[req.headers['sec-websocket-key']].currentGame]){
-                choiceField(users[req.headers['sec-websocket-key']].currentGame, req.headers['sec-websocket-key'], msg.data.field);
-            }else{
-                //send error message
-                ws.send(JSON.stringify({ error: "fieldNotSetOrNoGame" }));
-            }
+        ws.on('close',function(reason, description){
 
-        }else if(msg.action == "leaveGame"){
-            
-            //get the current game
-            var thisgame = games[users[req.headers['sec-websocket-key']].currentGame];
+            console.log(colors.red("[WebSocket] "+users[req.headers['sec-websocket-key']].username+" closed connection"));
 
-            //send force end message to the other user
-            if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
-                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd"}));
-            }
-            if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
-                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd"}));
-            }
-
-            //remove the current game
-            users[thisgame.users["1"]].currentGame = false;
-            users[thisgame.users["2"]].currentGame = false;
-
-            delete games[thisgame.gameId];
-            delete thisgame;
-
-            //send success message
-            ws.send(JSON.stringify({ action: "successfulLeftGame" }));
-
-            console.log("[GameHandler] User left the game".cyan);
-
-        }else if(msg.action == "leaveQueue"){
-
-            //check if user is in queue
+            //if user is in queue, remove the user from the queue
             if(queue.indexOf(req.headers['sec-websocket-key']) != -1){
 
-                //remove user from queue
                 queue.splice(queue.indexOf(req.headers['sec-websocket-key']),1);
                 console.log("[GameHandler] User left queue".cyan);
 
-            }else{
-                //send error message
-                ws.send(JSON.stringify({ error: "notInQueue" }));
             }
 
-        }
+            //delete the game if a game is running
+            if(users[req.headers['sec-websocket-key']].currentGame && games[users[req.headers['sec-websocket-key']].currentGame]){
 
-    });
+                var thisgame = games[users[req.headers['sec-websocket-key']].currentGame];
 
-    ws.on('close',function(reason, description){
+                if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
+                    users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd"}));
+                }
+                if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
+                    users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd"}));
+                }
 
-        console.log("[WebSocket] User closed connection".red);
+                users[thisgame.users["1"]].currentGame = false;
+                users[thisgame.users["2"]].currentGame = false;
 
-        //if user is in queue, remove the user from the queue
-        if(queue.indexOf(req.headers['sec-websocket-key']) != -1){
+                delete games[thisgame.gameId];
+                delete thisgame;
 
-            queue.splice(queue.indexOf(req.headers['sec-websocket-key']),1);
-            console.log("[GameHandler] User left queue".cyan);
-
-        }
-
-        //delete the game if a game is running
-        if(users[req.headers['sec-websocket-key']].currentGame && games[users[req.headers['sec-websocket-key']].currentGame]){
-
-            var thisgame = games[users[req.headers['sec-websocket-key']].currentGame];
-
-            if(users[thisgame.users["1"]] && thisgame.users["1"] != req.headers['sec-websocket-key']){
-                users[thisgame.users["1"]].send(JSON.stringify({action: "forceEnd"}));
-            }
-            if(users[thisgame.users["2"]] && thisgame.users["2"] != req.headers['sec-websocket-key']){
-                users[thisgame.users["2"]].send(JSON.stringify({action: "forceEnd"}));
             }
 
-            users[thisgame.users["1"]].currentGame = false;
-            users[thisgame.users["2"]].currentGame = false;
+            //delete the user
+            delete users[req.headers['sec-websocket-key']];
 
-            delete games[thisgame.gameId];
-            delete thisgame;
+        });
+
+    }else{
+
+        if(!req.headers['sec-websocket-protocol']){
+
+            ws.send(JSON.stringify({ error: "cannotSetUsername" }));
+            console.log("[ Warning ] sec-websocket-protocol is empty. User kicked.".yellow);
+
+        }else{
+
+            ws.send(JSON.stringify({ error: "invalidUsername" }));
 
         }
-
-        //delete the user
-        delete users[req.headers['sec-websocket-key']];
-
-    });
+        ws.close();
+        console.log("[WebSocket] Connection closed".red);
+    }
+    
  
 });
 
@@ -179,7 +198,7 @@ function matchmaking(){
         users[player1].currentGame = gameId;
         users[player2].currentGame = gameId;
 
-        console.log(colors.cyan("[GameHandler] New game created: "+gameId));
+        console.log(colors.cyan("[GameHandler] New game created: "+users[player1].username+"/"+users[player2].username));
 
     }
 

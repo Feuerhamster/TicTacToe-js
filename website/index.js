@@ -58,11 +58,12 @@ $("#game-field-9").on("click", function(){
 function gameServerConnection(username){
 
     //connect to gameserver
-    ws = new WebSocket("ws://localhost:2220",[username]);
+    ws = new WebSocket("ws://localhost:2220", username);
 
     //on open function
     ws.onopen = ()=>{
         console.log("[ws] Connected");
+        ws.send(JSON.stringify({ action: "setUsername", data:{ username: username } }));
     }
 
     //on message function
@@ -79,6 +80,10 @@ function gameServerConnection(username){
             },500);
 
             $("#main-online-counter").html(data.online);
+
+        }else if(data.action == "successfulSetUsername"){
+
+            $("#user-nickname").html(data.data.usernaem);
 
         }else if(data.action == "successfulJoinedQueue"){
 
@@ -165,7 +170,7 @@ function gameServerConnection(username){
 
                 currentGame = false;
 
-                if(data.data.winner == mePlayer){
+                if(data.data.winner == 1){
                     $("#game-headline").html("<span style='color: #10ac84'>Du hast Gewonnen</span>");
                 }else if(data.data.winner == 3){
                     $("#game-headline").html("<span style='color: #ff9f43'>Unentschieden</span>");
@@ -180,6 +185,15 @@ function gameServerConnection(username){
 
             }
             
+
+        }else if(data.error == "cannotSetUsername"){
+
+            window.location.href = document.URL;
+
+        }else if(data.error == "invalidUsername"){
+
+            sessionStorage.removeItem("username");
+            window.location.href = document.URL;
 
         }
 

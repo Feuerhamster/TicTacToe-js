@@ -227,7 +227,7 @@ a:visited{
 #game-field > div > .field{
     background-color: #34495e;
     padding: 20px;
-    margin: 30px;
+    margin: 10px;
     border-radius: 2px;
     display: inline-block;
 }
