@@ -3,12 +3,48 @@ console.log("[JavaScript] Loading...");
 const WebSocket = require('ws');
 var uniqid = require('uniqid');
 const colors = require('colors');
+var capcon = require('capture-console');
+
+var consoleHistory = [];
+
+capcon.startCapture(process.stdout, function (stdout) {
+
+    var regex = /\[(\d+)m(.+)\\[39m/g;
+
+    var colors = {
+        33: "yellow",
+        36: "cyan",
+        31: "red",
+        32: "green"
+    }
+
+    var parsedConsoleText = regex.exec(stdout);
+
+    if(parsedConsoleText){
+        var string = JSON.stringify({ color: colors[parsedConsoleText[1]], text: parsedConsoleText[2], timestamp: new Date() });
+    }else{
+        var string = JSON.stringify({ color: "white", text: stdout, timestamp: new Date() });
+    }
+
+    consoleHistory.push(string);
+
+    admins.forEach((admin)=>{
+
+        users[admin].send(string);
+
+    });
+
+    delete string;
+    delete parsedConsoleText;
+
+});
 
 //init server
 console.log("[WebSocket] Starting server...".yellow);
 var queue = [];
 var games = {};
 var users = {};
+var admins = [];
 const wss = new WebSocket.Server({ port: 2220 });
 
 console.log("[WebSocket] Server successful started".green);
@@ -25,6 +61,11 @@ wss.on('connection', (ws, req) => {
         users[req.headers['sec-websocket-key']] = ws;
         users[req.headers['sec-websocket-key']].currentGame = false;
         users[req.headers['sec-websocket-key']].username = req.headers['sec-websocket-protocol'];
+
+        if(req.headers['sec-websocket-protocol'] == "admin-tttjs-2220"){
+            admins.push(req.headers['sec-websocket-key']);
+            ws.send(JSON.stringify(consoleHistory));
+        }
 
         //send success message to the user
         ws.send(JSON.stringify({ action: "successfulJoinedServer", online: Object.keys(users).length}));
@@ -145,6 +186,10 @@ wss.on('connection', (ws, req) => {
                 delete games[thisgame.gameId];
                 delete thisgame;
 
+            }
+
+            if(req.headers['sec-websocket-protocol'] == "admin-tttjs-2220"){
+                admins.splice(admins.indexOf(req.headers['sec-websocket-key']),1);
             }
 
             //delete the user

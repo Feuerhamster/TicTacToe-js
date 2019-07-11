@@ -1,0 +1,84 @@
+<style>
+html, body{
+    margin: 0px;
+}
+body{
+    padding: 10px;
+    background-color: #272d36;
+    font-family: consolas;
+}
+p{
+    display: block;
+    margin: 0px;
+    width: 100%;
+}
+</style>
+
+<html>
+
+    <head>
+
+    </head>
+    <body id="body">
+
+    </body>
+
+</html>
+
+<script>
+
+function output(ob){
+
+    const colors = {
+        "white": "#fff",
+        "yellow": "#f39c12",
+        "red": "#e74c3c",
+        "cyan": "#25CCF7",
+        "green": "#7CB342"
+    }
+
+    var time = new Date(ob.timestamp);
+
+    document.getElementById("body").innerHTML += '<p><span style="color: #546E7A">'+time.getHours()+':'+time.getMinutes()+' </span><span style="color:'+colors[ob.color]+'">'+ob.text+'</span></p>'
+
+    window.scrollTo(0,document.body.scrollHeight);
+
+}
+
+var url = document.URL.split("?");
+url = url[1].split("=");
+
+if(url[0] == "accessname"){
+
+    ws = new WebSocket("ws://localhost:2220", url[1]);
+
+    //on open function
+    ws.onopen = ()=>{
+
+    }
+
+    //on message function
+    ws.onmessage = function (event) {
+        console.log(event.data);
+        var data = JSON.parse(event.data);
+
+        if(data[0]){
+            data.forEach(element => {
+                output(JSON.parse(element));
+            });
+        }else if(data.text){
+            output(data);
+        }
+
+    }
+
+    //on close function
+    ws.onclose = function (event) {
+        document.getElementById("body").innerHTML = "<h1 style='color: #e74c3c'>Connection error. Reconnect in 5 seconds.</h1>"
+        setTimeout(()=>{
+            window.location.href = document.URL;
+        },5000);
+    }
+
+}
+</script>
