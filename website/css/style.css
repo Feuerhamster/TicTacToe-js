@@ -3,12 +3,15 @@ html, body{
     margin: 0px;
     height: 100%;
     width: 100%;
-    background-color: #2c3e50;
 }
 
-h1, h2, h3, h4, h5, h6{
+*{
+    box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6, p{
     font-family: 'Karla', sans-serif;
-    color: white;
+    color: rgb(50,50,50);
 }
 
 footer{
@@ -16,7 +19,7 @@ footer{
     bottom: 0;
     padding: 10px;
     font-family: 'Karla', sans-serif;
-    color: white;
+    color: rgb(130,130,130);
     width: calc(100% - 20px);
 }
 footer > center > p{
@@ -39,12 +42,14 @@ button{
 button:hover{
     background: linear-gradient(135deg, #dd5050, #e99241);
 }
+button:focus{
+    outline: none;
+}
 
 button:active{
     transition: transform .1s;
     transform: scale(0.9);
 }
-
 
 input{
     padding: 10px 20px 10px 20px;
@@ -52,8 +57,7 @@ input{
     font-size: 16px;
     border-radius: 2px;
     font-family: 'Karla', sans-serif;
-    color: white;
-    background-color: #34495e;
+    color: rgb(50,50,50);
 }
 
 form{
@@ -113,7 +117,7 @@ a:visited{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: #2c3e50;
+    background-color: white;
 }
 #connecting-indicator > h1{
     margin-top: 0px;
@@ -130,7 +134,7 @@ a:visited{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: #2c3e50;
+    background-color: white;
     z-index: 1001;
 }
 #connecting-error > h1{
@@ -148,7 +152,6 @@ a:visited{
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    background-color: #2c3e50;
 }
 #main-screen > h1{
     font-size: 80px;
@@ -185,7 +188,7 @@ a:visited{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: #2c3e50;
+    background-color: white;
     display: none;
 }
 #queue-screen > h1{
@@ -215,7 +218,7 @@ a:visited{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: #2c3e50;
+    background-color: white;
     display: none;
 }
 #game-field > h2 {
@@ -225,14 +228,14 @@ a:visited{
 }
 
 #game-field > div > .field{
-    background-color: #34495e;
+    background-color: #e6edf7;
     padding: 20px;
     margin: 10px;
     border-radius: 2px;
     display: inline-block;
 }
 #game-field > div > .field:hover{
-    background-color: #3b5066;
+    background-color: #dae2ee;
 }
 #game-field > h1 {
     font-size: 4vw;
@@ -249,11 +252,95 @@ a:visited{
     align-items: center;
     flex-direction: column;
     position: absolute;
-    background-color: #2c3e50;
+    background-color: white;
 }
 #forceEnd-screen > h1{
     margin-top: 0px;
     margin-bottom: 50px;
     font-size: 4vw;
     color: #ee5253;
+}
+
+.modal{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.2);
+}
+
+
+.modal-content{
+    padding: 15px;
+    border-radius: 2px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-content > h1{
+    margin-top: 0px;
+}
+
+.userlist{
+    list-style: none;
+    font-family: 'Karla', sans-serif;
+    color: rgb(50,50,50);
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+    margin: 15px;
+    width: 100%;
+    margin-bottom: 35px;
+}
+
+.userlist > li{
+    font-size: 21px;
+    display: flex;
+    border-top: 2px solid rgba(240,240,240);
+    padding: 5px 0px 5px 0px;
+}
+
+.userlist > li:first-child{
+    border-top: 0px solid rgba(240,240,240);
+}
+
+.userlist > li > span{
+    display: inline-block;
+}
+
+.flex-spacer{
+    flex-grow: 1;
+}
+
+#loginError{
+    color: #ee5253;
+}
+
+.inviteButton{
+    cursor: pointer;
+    color: rgba(110,110,110);
+}
+
+.inviteButton:hover{
+    color: rgba(80,80,80);
+}
+
+.success{
+    color: #10ac84!important;
+}
+
+.btn-box{
+    display: flex;
+    margin-top: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
 }

@@ -4,8 +4,8 @@
     <head>
         <title>TicTacToe Multiplayer</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" id="stylelink" href="style.css" />
-        <link rel="stylesheet" href="loader.css" />
+        <link rel="stylesheet" id="stylelink" href="./css/style.css" />
+        <link rel="stylesheet" href="./css/loader.css" />
         <link href="https://fonts.googleapis.com/css?family=Karla&display=swap" rel="stylesheet"> 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <meta name="viewport" content="width=400, initial-scale=0.7">
@@ -61,9 +61,11 @@
 
             </div>
 
-            <button id="backButton" onclick="back();" style="margin-bottom: 20px; margin-top: 20px; display: none">Beenden & Zurück</button>
-            <button id="newGameButton" onclick="enterQueue();" style="display: none">Neues Spiel</button>
-            
+            <div class="btn-box" id="gameFinishButtons" style="display: none">
+                <button onclick="back();" style="margin: 10px;">Beenden & Zurück</button>
+                <button onclick="enterQueue();" style="margin: 10px;">Neues Spiel</button>
+            </div>
+ 
             
         </div>
 
@@ -72,6 +74,8 @@
             <h2>Multiplayer</h2>
 
             <div id="loginBox">
+
+                <p id="loginError"></p>
 
                 <form id="loginform">
                     <input type="text" placeholder="Nickname" name="username" required minlength="1" maxlength="20" /><br>
@@ -83,15 +87,62 @@
                 <h3>Spieler Online: <b id="main-online-counter">...</b></h3>
                 <h3>Nickname: <b id="user-nickname">...</b></h3>
 
-                <button style="font-size: 32px;" onclick="enterQueue();">Spielen</button>
+                <div class="btn-box">
+                    <button style="font-size: 32px; min-width: 220px; margin: 10px;" onclick="showUsers();">Spielerliste</button>
+                    <button style="font-size: 32px; min-width: 220px; margin: 10px;" onclick="enterQueue();">Spielen</button>
+                    <button style="font-size: 32px; min-width: 220px; margin: 10px;" onclick="showInvites();" id="inviteListButton">Einladungen</button>
+                </div>
             </div>
+        </div>
+
+        <div class="modal" id="usermodal" style="display: none;">
+
+            <div class="modal-content">
+
+                <h1>Diese Spieler sind gerade Online</h1>
+
+                <ul class="userlist" id="userlist">
+                </ul>
+
+                <button style="font-size: 32px;" onclick="$(this.offsetParent).fadeOut('fast');">Schließen</button>
+
+            </div>
+
+        </div>
+
+        <div class="modal" id="inviteListModal" style="display: none;">
+
+            <div class="modal-content">
+
+                <h1>Einladungen zu einem Spiel</h1>
+
+                <ul class="userlist" id="inviteList">
+                </ul>
+
+                <button style="font-size: 32px;" onclick="$(this.offsetParent).fadeOut('fast');">Schließen</button>
+
+            </div>
+
+        </div>
+
+        <div class="modal" id="inviteModal" style="display: none;">
+
+            <div class="modal-content">
+
+                <h1>Warte auf <span id="partnerName">...</span></h1>
+                <h3>Du musst warten, bis dein Partner die Einladung angenommen hat</h3>
+                <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <button style="font-size: 32px; margin-top: 25px;" onclick="revokeInvite();$(this.offsetParent).fadeOut('fast');">Zurückziehen</button>
+
+            </div>
+
         </div>
 
     </body>
 
     <footer>
-        <center style="width: 100%;"> <p>Server and Website by Feuerhamster</p> <p id="numPadControl">Unterstützt NumPad Steuerung!</p> <p><a href="infos.html" target="_blank">Infos und Hilfe</a></p> <p><a id="styleSwitcher" onclick="switchDesign();" style="cursor:pointer;color: #16a085!important">[Dark Design]</a></p> </center>
+        <center style="width: 100%;"> <p>Project of <a href="https://hamsterlabs.de" target="_blank">HamsterLabs.de</a></p> <p><a href="infos.html" target="_blank">Infos und Hilfe</a></p> <p><a id="styleSwitcher" onclick="switchDesign();" style="cursor:pointer;color: #16a085!important">[Dark Design]</a></p> </center>
     </footer>
 
 </html>
-<script src="index.js"></script>
+<script src="./js/index.js"></script>

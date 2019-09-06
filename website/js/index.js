@@ -14,6 +14,17 @@ var mePlayer = false;
 var ws = false;
 var inQueue = false;
 
+//load audio
+var up3Sound = new Audio("./sounds/sound-up-3.mp3");
+var down3Sound = new Audio("./sounds/sound-down-3.mp3");
+
+var up2Sound = new Audio("./sounds/sound-up-2.mp3");
+var down2Sound = new Audio("./sounds/sound-down-2.mp3");
+
+var specialSound = new Audio("./sounds/sound-special-5.mp3");
+var soundDown = new Audio("./sounds/sound-slow-down-3.mp3");
+var soundDouble = new Audio("./sounds/sound-double-2.mp3");
+
 //prepare game field
 $("#game-field-1").html(gameFieldIcons.empty);
 $("#game-field-2").html(gameFieldIcons.empty);
@@ -54,11 +65,35 @@ $("#game-field-9").on("click", function(){
     chooseFiled(9);
 });
 
+function updateInviteListButton(addValue){
+    var btntext = $("#inviteListButton").html();
+    var pattern = /Einladungen \((\d+)\)/gi;
+    var result = pattern.exec(btntext);
+
+    if(result){
+        var inviteCount = parseInt(result[1]) + addValue;
+        if(inviteCount < 1){
+            $("#inviteListButton").html("Einladungen");
+        }else{
+            $("#inviteListButton").html("Einladungen ("+inviteCount+")");
+        }
+        
+    }else{
+        if(addValue > 0){
+            $("#inviteListButton").html("Einladungen ("+addValue+")");
+        }else{
+            $("#inviteListButton").html("Einladungen");
+        }
+    }
+
+    
+}
+
 //create connect function
 function gameServerConnection(username){
 
     //connect to gameserver
-    ws = new WebSocket("ws://localhost:2220", username);
+    ws = new WebSocket("ws://localhost:2220?username="+username);
 
     //on open function
     ws.onopen = ()=>{
@@ -103,6 +138,9 @@ function gameServerConnection(username){
             currentGame = true;
             inQueue = false;
 
+            //play sound
+            up3Sound.play();
+
             $("#game-field-1").html(gameFieldIcons.empty);
             $("#game-field-2").html(gameFieldIcons.empty);
             $("#game-field-3").html(gameFieldIcons.empty);
@@ -120,8 +158,8 @@ function gameServerConnection(username){
             $("#game-field").css("display", "flex").hide().fadeIn(500);
 
             $("#enemy-name").html(data.data.enemy);
-            
-            if(mePlayer == 1){
+        
+            if(mePlayer == 1){ 
                 $("#you-symbol").html(gameFieldIcons.miniX);
             }else{
                 $("#you-symbol").html(gameFieldIcons.miniO);
@@ -134,6 +172,9 @@ function gameServerConnection(username){
             }
 
         }else if(data.action == "forceEnd"){
+
+            //play sound
+            down3Sound.play();
 
             $("#game-field").fadeOut(500);
 
@@ -172,28 +213,87 @@ function gameServerConnection(username){
 
                 if(data.data.winner == 1){
                     $("#game-headline").html("<span style='color: #10ac84'>Du hast Gewonnen</span>");
+                    specialSound.play();
                 }else if(data.data.winner == 3){
                     $("#game-headline").html("<span style='color: #ff9f43'>Unentschieden</span>");
+                    soundDouble.play();
                 }else{
                     $("#game-headline").html("<span style='color: #ee5253'>Du hast Verloren</span>");
+                    soundDown.play();
                 }
 
-                $("#backButton").fadeIn(1000);
-                setTimeout(()=>{
-                    $("#newGameButton").fadeIn(1000);
-                },500);
+                $("#gameFinishButtons").fadeIn(1000);
 
             }
             
 
-        }else if(data.error == "cannotSetUsername"){
+        }else if(data.action == "userdata"){
+            
+            //clear user list
+            $("#userlist").html("");
 
-            window.location.href = document.URL;
+            //loop all users
+            data.data.forEach(user => {
+                //append to userlist
+                $("#userlist").append('<li><strong>'+user+'</strong><span class="flex-spacer"></span><span onclick="invite(\''+user+'\')" class="inviteButton">Einladen</span></li>');
+            });
+
+
+        }else if(data.action == "successfulInvited"){
+            $('#inviteModal').fadeIn('fast');
+            $('#partnerName').html(data.data.user);
+
+        }else if(data.action == "invited"){
+
+            //update list button
+            updateInviteListButton(1);
+            //play sound
+            up2Sound.play();
+
+        }else if(data.action == "inviteData"){
+
+            //clear user list
+            $("#inviteList").html("");
+
+            //loop all users
+            data.data.forEach(user => {
+                //append to userlist
+                $("#inviteList").append('<li><strong>'+user+'</strong><span class="flex-spacer"></span><span onclick="acceptInvite(\''+user+'\', this)" class="inviteButton" style="margin-right: 10px; color: #10ac84">Annehmen</span> <span onclick="denyInvite(\''+user+'\', this)" class="inviteButton" style="color: #ee5253">Ablehnen</span></li>');
+            });
+
+        }else if(data.action == "successfulDenied"){
+            //update list button
+            updateInviteListButton(-1);
+        }else if(data.action == "inviteDenied"){
+
+            updateInviteListButton(-1);
+
+            //play sound
+            down2Sound.play();
+
+            $('#inviteModal').fadeOut("fast", function(){
+                alert("Dein Partner hat die Einladung abgelehnt");
+            });
+            
+        }else if(data.action == "inviteRevoked"){
+            updateInviteListButton(-1);
+        }else if(data.action == "inviteAccepted"){
+
+            $("#usermodal").fadeOut("fast");
+            $("#inviteModal").fadeOut("fast");
 
         }else if(data.error == "invalidUsername"){
 
-            sessionStorage.removeItem("username");
+            sessionStorage.setItem('username', 'INVALID');
             window.location.href = document.URL;
+
+        }else if(data.error == "alreadyInvited"){
+
+            alert("Du hast bereits einen Spieler eingeladen");
+
+        }else if(data.error == "invalidUser"){
+
+            alert("Du kannst diesen Spieler nicht einladen");
 
         }
 
@@ -276,7 +376,7 @@ function switchDesign(){
         }
 
         design = "dark";
-        document.getElementById("stylelink").href="style-dark.css";
+        document.getElementById("stylelink").href="./css/style-dark.css";
         $('#styleSwitcher').html("[Light Design]");
 
     }else{
@@ -286,7 +386,7 @@ function switchDesign(){
         }
 
         design = "light";
-        document.getElementById("stylelink").href="style.css";
+        document.getElementById("stylelink").href="./css/style.css";
         $('#styleSwitcher').html("[Dark Design]");
 
     }
@@ -315,10 +415,19 @@ $("#loginform").submit(function(event){
 
 if(typeof(Storage) != "undefined" && sessionStorage.username){
 
-    $("#connecting-indicator").css("display", "flex");
-    $("#user-nickname").html(sessionStorage.username);
-    gameServerConnection(sessionStorage.username);
+    if(sessionStorage.username != "INVALID"){
 
+        $("#connecting-indicator").css("display", "flex");
+        $("#user-nickname").html(sessionStorage.username);
+        gameServerConnection(sessionStorage.username);
+
+    }else{
+
+        sessionStorage.removeItem('username');
+        $("#loginError").html("Der Benutzername ist ungültig oder schon vergeben");
+
+    }
+    
 }
 
 if(typeof(Storage) != "undefined" && sessionStorage.design){
@@ -334,4 +443,35 @@ if(typeof(Storage) != "undefined" && sessionStorage.design){
         $('#styleSwitcher').html("[Dark Design]");
 
     }
+}
+
+function showUsers(){
+    $("#usermodal").fadeIn("fast");
+    ws.send(JSON.stringify({ action: "getUsers" }));
+}
+
+function showInvites(){
+    $("#inviteListModal").fadeIn("fast");
+    ws.send(JSON.stringify({ action: "getInvites" }));
+}
+
+function invite(user){
+    ws.send(JSON.stringify({ action: "invite", data: { user: user } }));
+}
+
+function revokeInvite(){
+    ws.send(JSON.stringify({ action: "revokeInvite" }));
+}
+
+function denyInvite(user, element){
+    ws.send(JSON.stringify({ action: "denyInvite", data: { user: user } }));
+    element.parentNode.remove();
+    updateInviteListButton(-1);
+}
+
+function acceptInvite(user, element){
+    ws.send(JSON.stringify({ action: "acceptInvite", data: { user: user } }));
+    element.parentNode.remove();
+    updateInviteListButton(-1);
+    $("#inviteListModal").fadeOut("fast");
 }

@@ -3,12 +3,16 @@ console.log("[JavaScript] Loading...");
 const WebSocket = require('ws');
 var uniqid = require('uniqid');
 const colors = require('colors');
+const qs = require('querystring');
+const url = require('url');
 
 //init server
 console.log("[WebSocket] Starting server...".yellow);
 var queue = [];
 var games = {};
 var users = {};
+var usersByName = {};
+var invites = [];
 const wss = new WebSocket.Server({ port: 2220 });
 
 console.log("[WebSocket] Server successful started".green);
@@ -16,15 +20,23 @@ console.log("[WebSocket] Server successful started".green);
 //listen on connections
 wss.on('connection', (ws, req) => {
 
-    escapeHTML = /[\<\>\?]/gi;
+    //parse username
+    escapeHTML = /[\<\>\?\ä\ö\ü]/gi;
+    querydata = qs.parse(url.parse(req.url).query);
 
-    if(req.headers['sec-websocket-protocol'] && req.headers['sec-websocket-protocol'].length > 1 && req.headers['sec-websocket-protocol'].length < 20 && escapeHTML.exec(req.headers['sec-websocket-protocol']) == null){
+    //get an array with all usernames
+    var usermap = Object.values(users).map(value => value = value.username.toLowerCase());
+
+    if(querydata.username && querydata.username.length > 1 && querydata.username.length < 20 && escapeHTML.exec(querydata.username) == null && !usermap.includes(querydata.username.toLowerCase())){
 
         //log new users
-        console.log(colors.green("[WebSocket] New user: " + req.headers['sec-websocket-protocol']));
+        console.log(colors.green("[WebSocket] New user: " + querydata.username));
         users[req.headers['sec-websocket-key']] = ws;
         users[req.headers['sec-websocket-key']].currentGame = false;
-        users[req.headers['sec-websocket-key']].username = req.headers['sec-websocket-protocol'];
+        users[req.headers['sec-websocket-key']].username = querydata.username;
+        users[req.headers['sec-websocket-key']].id = req.headers['sec-websocket-key'];
+
+        usersByName[querydata.username] = req.headers['sec-websocket-key'];
 
         //send success message to the user
         ws.send(JSON.stringify({ action: "successfulJoinedServer", online: Object.keys(users).length}));
@@ -111,6 +123,106 @@ wss.on('connection', (ws, req) => {
                     ws.send(JSON.stringify({ error: "notInQueue" }));
                 }
 
+            }else if(msg.action == "getUsers"){
+                //get an array with all usernames
+                var usermap = Object.values(users).map(value => value = value.username);
+                ws.send(JSON.stringify({ action: "userdata", data: usermap }));
+            }else if(msg.action == "invite"){
+                
+                //check if data are avalible
+                if(msg.data && msg.data.user){
+
+                    //get an array with all usernames
+                    var usermap = Object.values(users).map(value => value = value.username);
+
+                    if(msg.data.user != users[req.headers['sec-websocket-key']].username && usermap.includes(msg.data.user)){
+
+                        //get an array with all invites
+                        var invitemap = invites.map(value => value = value.sender);
+
+                        //check if this user already invited someone
+                        if(!invitemap.includes(req.headers['sec-websocket-key'])){
+
+                            //create invite
+                            var invite = {
+                                sender: req.headers['sec-websocket-key'],
+                                user: usersByName[msg.data.user],
+                            }
+
+                            invites.push(invite);
+
+                            ws.send(JSON.stringify({ action: "successfulInvited", data: { user: msg.data.user } }));
+                            users[invite.user].send(JSON.stringify({ action: "invited", data: { from: users[req.headers['sec-websocket-key']].username } }));
+
+                        }else{
+                            ws.send(JSON.stringify({ error: "alreadyInvited" }));
+                        }
+
+                    }else{
+                        ws.send(JSON.stringify({ error: "invalidUser" }));
+                    }
+
+                }else{
+                    ws.send(JSON.stringify({ error: "userNotSet" }));
+                }
+
+            }else if(msg.action == "revokeInvite"){
+
+                //revoke invite
+                for(var i = 0; i < invites.length; i++){
+                    if(invites[i].sender == req.headers['sec-websocket-key']){
+
+                        if(users[invites[i].user]){
+                            users[invites[i].user].send(JSON.stringify({ action: "inviteRevoked", data: { user: invites[i].sender } }));
+                        }
+                    
+                        ws.send(JSON.stringify({ action: "successfulRevoked", data: { user: invites[i].user } }));
+
+                        invites.splice(i,1);
+                    }
+                }
+
+            }else if(msg.action == "getInvites"){
+
+                var inviteList = [];
+
+                for(var i = 0; i < invites.length; i++){
+                    if(invites[i].user == req.headers['sec-websocket-key']){
+                        inviteList.push(users[invites[i].sender].username);
+                    }
+                }
+
+                ws.send(JSON.stringify({ action: "inviteData", data: inviteList }));
+
+            }else if(msg.action == "denyInvite"){
+
+                for(var i = 0; i < invites.length; i++){
+                    if(invites[i].user == req.headers['sec-websocket-key'] && invites[i].sender == usersByName[msg.data.user]){
+    
+                        users[req.headers['sec-websocket-key']].send(JSON.stringify({ action: "successfulDenied", data: { user: invites[i].sender } }));
+                        if(users[invites[i].sender]){
+                            users[invites[i].sender].send(JSON.stringify({ action: "inviteDenied" }));
+                        }
+                        invites.splice(i,1);
+    
+                    }
+                }
+
+            }else if(msg.action == "acceptInvite"){
+                
+                for(var i = 0; i < invites.length; i++){
+                    if(invites[i].user == req.headers['sec-websocket-key'] && invites[i].sender == usersByName[msg.data.user]){
+    
+                        
+                        users[invites[i].sender].send(JSON.stringify({ action: "inviteAccepted" }));
+                        console.log(colors.cyan("[GameHandler] Invite accepted "+users[invites[i].sender].username+"->"+users[invites[i].user].username));
+                        createGame(invites[i].sender, invites[i].user);
+
+                        invites.splice(i,1);
+    
+                    }
+                }
+
             }
 
         });
@@ -147,25 +259,32 @@ wss.on('connection', (ws, req) => {
 
             }
 
+            //revoke invite
+            for(var i = 0; i < invites.length; i++){
+                if(invites[i].sender == req.headers['sec-websocket-key']){
+
+                    users[invites[i].user].send(JSON.stringify({ action: "inviteRevoked", data: { user: users[invites[i].sender].username } }));
+                    
+                    invites.splice(i,1);
+
+                }else if(invites[i].user == req.headers['sec-websocket-key']){
+                    users[invites[i].sender].send(JSON.stringify({ action: "inviteDenied" }));
+                    invites.splice(i,1);
+                }
+            }
+
             //delete the user
+            delete usersByName[users[req.headers['sec-websocket-key']].username];
             delete users[req.headers['sec-websocket-key']];
 
         });
 
     }else{
 
-        if(!req.headers['sec-websocket-protocol']){
-
-            ws.send(JSON.stringify({ error: "cannotSetUsername" }));
-            console.log("[ Warning ] sec-websocket-protocol is empty. User kicked.".yellow);
-
-        }else{
-
-            ws.send(JSON.stringify({ error: "invalidUsername" }));
-
-        }
+        ws.send(JSON.stringify({ error: "invalidUsername" }));
         ws.close();
-        console.log("[WebSocket] Connection closed".red);
+        console.log("[WebSocket] Connection closed because of invalid username".yellow);
+
     }
     
  
@@ -196,13 +315,39 @@ function matchmaking(){
 
         game.users["1"] = player1;
         game.users["2"] = player2;
-        game.currentPlayer = "1";
+
+        //random whois
+        var random = Math.floor(Math.random()*2)+1;
+
+        if(random == 1){
+
+            var user1 = {isCurrentPlayer: true, you: 1};
+            var user2 = {isCurrentPlayer: false, you: 2};
+            game.currentPlayer = 1;
+
+            game.symbols = {
+                x: player1,
+                o: player2
+            };
+
+        }else{
+
+            var user1 = {isCurrentPlayer: false, you: 2};
+            var user2 = {isCurrentPlayer: true, you: 1};
+            game.currentPlayer = 2;
+
+            game.symbols = {
+                x: player2,
+                o: player1
+            };
+
+        }
 
         games[gameId] = game;
 
         //send new game actions to players
-        users[player1].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: true, you: 1, enemy: users[player2].username}}));
-        users[player2].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: false, you: 2, enemy: users[player1].username}}));
+        users[player1].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: user1.isCurrentPlayer, you: user1.you, enemy: users[player2].username}}));
+        users[player2].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: user2.isCurrentPlayer, you: user2.you, enemy: users[player1].username}}));
 
         users[player1].currentGame = gameId;
         users[player2].currentGame = gameId;
@@ -210,6 +355,62 @@ function matchmaking(){
         console.log(colors.cyan("[GameHandler] New game created: "+users[player1].username+"/"+users[player2].username));
 
     }
+
+}
+
+//new game from invite
+function createGame(player1, player2){
+
+    //generate uniqe game id
+    var gameId = uniqid();
+
+    //create game with game data
+    var game = {
+        currentField: [0,0,0,0,0,0,0,0,0]
+    }
+
+    game.users = {};
+
+    game.users["1"] = player1;
+    game.users["2"] = player2;
+
+    //random whois
+    var random = Math.floor(Math.random()*2)+1;
+
+    if(random == 1){
+
+        var user1 = {isCurrentPlayer: true, you: 1};
+        var user2 = {isCurrentPlayer: false, you: 2};
+        game.currentPlayer = 1;
+
+        game.symbols = {
+            x: player1,
+            o: player2
+        };
+
+    }else{
+
+        var user1 = {isCurrentPlayer: false, you: 2};
+        var user2 = {isCurrentPlayer: true, you: 1};
+        game.currentPlayer = 2;
+
+        game.symbols = {
+            x: player2,
+            o: player1
+        };
+
+    }
+
+    games[gameId] = game;
+
+    //send new game actions to players
+    users[player1].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: user1.isCurrentPlayer, you: user1.you, enemy: users[player2].username}}));
+    users[player2].send(JSON.stringify({action: "newGame", data: {isCurrentPlayer: user2.isCurrentPlayer, you: user2.you, enemy: users[player1].username}}));
+
+    users[player1].currentGame = gameId;
+    users[player2].currentGame = gameId;
+
+    console.log(colors.cyan("[GameHandler] New game created: "+users[player1].username+"/"+users[player2].username));
 
 }
 
@@ -226,6 +427,12 @@ function choiceField(gameId, user, field){
             var me = 2;
         }
 
+        if(games[gameId].symbols.x == user){
+            var meSymbol = 1;
+        }else if(games[gameId].symbols.o == user){
+            var meSymbol = 2;
+        }
+
         //check if user is the current user
         if(games[gameId].currentPlayer == me){
 
@@ -239,7 +446,7 @@ function choiceField(gameId, user, field){
                 if(games[gameId].currentField[field] == 0){
 
                     //set me to the field
-                    games[gameId].currentField[field] = me;
+                    games[gameId].currentField[field] = meSymbol;
 
                     //handle next player
                     if(me == 1){
@@ -320,16 +527,26 @@ function finishGame(gameId, winner){
         if(winner == 1){
 
             //send messages to users
-            users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
-            users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
+            if(games[gameId].symbols.x == games[gameId].users["1"]){
+                users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
+                users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
+            }else{
+                users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
+                users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
+            }
+            
 
 
         }else if(winner == 2){
 
             //send messages to users
-            users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
-            users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
-
+            if(games[gameId].symbols.x == games[gameId].users["1"]){
+                users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
+                users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
+            }else{
+                users[games[gameId].users["1"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 1}}));
+                users[games[gameId].users["2"]].send(JSON.stringify({action: "updateGame", data: {gameField: games[gameId].currentField, isCurrentPlayer: false, winner: 2}}));
+            }
         }else{
 
             //send messages to users
